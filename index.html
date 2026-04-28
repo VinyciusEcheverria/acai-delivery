@@ -235,10 +235,14 @@
 
 <script>
 // ===== CONFIG =====
-emailjs.init("L4e1vJJ7mke0QuMq7");
 const EMAILJS_SERVICE = "service_tqyjz85";
 const EMAILJS_TEMPLATE = "template_nt8l05u";
 const ADMIN_EMAIL = "vinycius.fernandes.ms@gmail.com";
+
+// Inicializa EmailJS quando a página carregar
+window.addEventListener('DOMContentLoaded', function() {
+  emailjs.init("L4e1vJJ7mke0QuMq7");
+});
 
 // ===== STATE =====
 let currentUser = null;
