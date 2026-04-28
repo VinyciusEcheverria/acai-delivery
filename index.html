@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Açaí Delivery</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/emailjs-com/3.2.0/email.min.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  :root{
+    --purple:#7c3aed;--pink:#ec4899;--light:#fdf4ff;
+    --grad:linear-gradient(135deg,#7c3aed,#ec4899);
+    --card:#fff;--shadow:0 4px 24px #0001;
+  }
+  body{font-family:'Segoe UI',sans-serif;background:var(--light);min-height:100vh;}
+
+  /* ===== AUTH ===== */
+  #auth{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--grad);}
+  .auth-box{background:#fff;border-radius:24px;padding:40px 36px;width:100%;max-width:400px;box-shadow:0 8px 40px #0003;text-align:center;}
+  .auth-logo{font-size:2.8rem;margin-bottom:8px;}
+  .auth-box h1{font-size:1.6rem;color:var(--purple);margin-bottom:4px;}
+  .auth-box p{color:#888;font-size:.9rem;margin-bottom:24px;}
+  .input-group{position:relative;margin-bottom:16px;}
+  .input-group input{width:100%;padding:14px 16px;border:2px solid #e5e7eb;border-radius:12px;font-size:1rem;outline:none;transition:.2s;}
+  .input-group input:focus{border-color:var(--purple);}
+  .btn-main{width:100%;padding:14px;background:var(--grad);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;transition:.2s;margin-top:4px;}
+  .btn-main:hover{opacity:.9;}
+  .btn-main:disabled{opacity:.6;cursor:not-allowed;}
+  .otp-inputs{display:flex;gap:10px;justify-content:center;margin-bottom:20px;}
+  .otp-inputs input{width:52px;height:56px;text-align:center;font-size:1.4rem;font-weight:700;border:2px solid #e5e7eb;border-radius:12px;outline:none;transition:.2s;}
+  .otp-inputs input:focus{border-color:var(--purple);}
+  .back-link{color:var(--purple);cursor:pointer;font-size:.9rem;margin-top:12px;display:inline-block;}
+  .back-link:hover{text-decoration:underline;}
+  .msg{padding:10px;border-radius:8px;font-size:.88rem;margin-bottom:12px;}
+  .msg.success{background:#d1fae5;color:#065f46;}
+  .msg.error{background:#fee2e2;color:#991b1b;}
+
+  /* ===== HEADER ===== */
+  #app{display:none;}
+  header{background:var(--grad);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px #0002;}
+  .logo-h{color:#fff;font-size:1.3rem;font-weight:800;display:flex;align-items:center;gap:8px;}
+  .header-right{display:flex;align-items:center;gap:16px;}
+  .cart-btn{background:#fff2;border:none;color:#fff;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:.9rem;font-weight:600;display:flex;align-items:center;gap:6px;transition:.2s;}
+  .cart-btn:hover{background:#fff3;}
+  .cart-count{background:#fff;color:var(--purple);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;}
+  .user-btn{background:#fff2;border:none;color:#fff;padding:8px 14px;border-radius:20px;cursor:pointer;font-size:.85rem;}
+
+  /* ===== TABS ===== */
+  .tabs{display:flex;gap:8px;padding:20px 24px 0;overflow-x:auto;}
+  .tab{padding:8px 20px;border-radius:20px;border:2px solid var(--purple);color:var(--purple);background:#fff;cursor:pointer;font-weight:600;font-size:.9rem;white-space:nowrap;transition:.2s;}
+  .tab.active{background:var(--grad);color:#fff;border-color:transparent;}
+
+  /* ===== MENU ===== */
+  #menu-section{padding:20px 24px;}
+  .section-title{font-size:1.2rem;font-weight:800;color:var(--purple);margin-bottom:16px;}
+  .items-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
+  .item-card{background:var(--card);border-radius:16px;padding:20px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px;}
+  .item-emoji{font-size:2.4rem;}
+  .item-name{font-weight:700;color:#1f2937;font-size:1rem;}
+  .item-desc{color:#6b7280;font-size:.85rem;}
+  .item-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:4px;}
+  .item-price{font-weight:800;font-size:1.1rem;color:var(--purple);}
+  .add-btn{background:var(--grad);color:#fff;border:none;border-radius:10px;padding:8px 16px;cursor:pointer;font-weight:700;font-size:.9rem;transition:.2s;}
+  .add-btn:hover{opacity:.85;}
+
+  /* ===== CART ===== */
+  #cart-section{display:none;padding:20px 24px;}
+  .cart-item{background:#fff;border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .cart-item-info{flex:1;}
+  .cart-item-name{font-weight:700;color:#1f2937;}
+  .cart-item-price{color:var(--purple);font-weight:600;font-size:.9rem;}
+  .qty-ctrl{display:flex;align-items:center;gap:8px;}
+  .qty-btn{width:30px;height:30px;border-radius:50%;border:2px solid var(--purple);background:#fff;color:var(--purple);font-size:1.1rem;cursor:pointer;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .qty-num{font-weight:700;min-width:20px;text-align:center;}
+  .cart-total{background:var(--grad);color:#fff;border-radius:14px;padding:20px;margin-top:8px;}
+  .cart-total-row{display:flex;justify-content:space-between;font-weight:700;font-size:1.1rem;}
+  .payment-title{color:#fff;font-weight:700;margin:16px 0 10px;}
+  .payment-opts{display:flex;gap:10px;flex-wrap:wrap;}
+  .pay-opt{padding:10px 18px;border-radius:10px;border:2px solid #fff5;background:#fff2;color:#fff;cursor:pointer;font-weight:600;transition:.2s;}
+  .pay-opt.selected{background:#fff;color:var(--purple);}
+  .checkout-btn{width:100%;margin-top:16px;padding:14px;background:#fff;color:var(--purple);border:none;border-radius:12px;font-size:1rem;font-weight:800;cursor:pointer;transition:.2s;}
+  .checkout-btn:hover{background:#f5f3ff;}
+  .empty-cart{text-align:center;color:#aaa;padding:40px 0;font-size:1rem;}
+
+  /* ===== ORDERS ===== */
+  #orders-section{display:none;padding:20px 24px;}
+  .order-card{background:#fff;border-radius:16px;padding:20px;margin-bottom:14px;box-shadow:var(--shadow);}
+  .order-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .order-id{font-weight:800;color:var(--purple);}
+  .order-status{padding:4px 12px;border-radius:20px;font-size:.8rem;font-weight:700;}
+  .status-novo{background:#fef3c7;color:#92400e;}
+  .status-preparo{background:#dbeafe;color:#1e40af;}
+  .status-entrega{background:#ede9fe;color:#5b21b6;}
+  .status-entregue{background:#d1fae5;color:#065f46;}
+  .order-items{color:#6b7280;font-size:.9rem;margin-bottom:8px;}
+  .order-footer{display:flex;justify-content:space-between;font-weight:700;color:#1f2937;}
+
+  /* ===== ADMIN ===== */
+  #admin-section{display:none;padding:20px 24px;}
+  .admin-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+  .admin-order-card{background:#fff;border-radius:16px;padding:20px;margin-bottom:14px;box-shadow:var(--shadow);}
+  .admin-order-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+  .admin-order-info{flex:1;}
+  .admin-order-id{font-weight:800;color:var(--purple);font-size:1rem;}
+  .admin-order-client{color:#6b7280;font-size:.85rem;margin-top:2px;}
+  .admin-order-items{color:#374151;font-size:.9rem;margin:10px 0;}
+  .admin-order-footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+  .admin-total{font-weight:800;color:var(--purple);}
+  .admin-pay{font-size:.85rem;color:#6b7280;}
+  .status-select{padding:6px 12px;border-radius:8px;border:2px solid #e5e7eb;font-weight:600;cursor:pointer;outline:none;font-size:.85rem;}
+
+  /* ===== MODAL ===== */
+  .modal-overlay{display:none;position:fixed;inset:0;background:#0006;z-index:200;align-items:center;justify-content:center;}
+  .modal-overlay.show{display:flex;}
+  .modal{background:#fff;border-radius:20px;padding:32px;max-width:420px;width:90%;text-align:center;}
+  .modal h2{color:var(--purple);margin-bottom:12px;}
+  .modal p{color:#6b7280;margin-bottom:20px;}
+  .modal-btns{display:flex;gap:10px;justify-content:center;}
+  .modal-btn{padding:10px 24px;border-radius:10px;border:none;font-weight:700;cursor:pointer;font-size:.95rem;}
+  .modal-btn.confirm{background:var(--grad);color:#fff;}
+  .modal-btn.cancel{background:#f3f4f6;color:#374151;}
+
+  .hidden{display:none!important;}
+</style>
+</head>
+<body>
+
+<!-- ===== AUTH ===== -->
+<div id="auth">
+  <div class="auth-box">
+    <div class="auth-logo">🍇</div>
+    <h1>Açaí Delivery</h1>
+    <p>Entre com seu e-mail para fazer seu pedido</p>
+
+    <div id="step-email">
+      <div id="auth-msg"></div>
+      <div class="input-group">
+        <input type="email" id="email-input" placeholder="seu@email.com"/>
+      </div>
+      <button class="btn-main" id="send-code-btn" onclick="sendCode()">Enviar código</button>
+    </div>
+
+    <div id="step-otp" class="hidden">
+      <div id="otp-msg"></div>
+      <p style="margin-bottom:16px;color:#555;font-size:.9rem;">Digite o código enviado para <strong id="email-shown"></strong></p>
+      <div class="otp-inputs">
+        <input type="text" maxlength="1" class="otp-digit" oninput="otpNav(this,0)"/>
+        <input type="text" maxlength="1" class="otp-digit" oninput="otpNav(this,1)"/>
+        <input type="text" maxlength="1" class="otp-digit" oninput="otpNav(this,2)"/>
+        <input type="text" maxlength="1" class="otp-digit" oninput="otpNav(this,3)"/>
+        <input type="text" maxlength="1" class="otp-digit" oninput="otpNav(this,4)"/>
+        <input type="text" maxlength="1" class="otp-digit" oninput="otpNav(this,5)"/>
+      </div>
+      <button class="btn-main" onclick="verifyCode()">Entrar</button>
+      <br/>
+      <span class="back-link" onclick="backToEmail()">← Usar outro e-mail</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="app">
+  <header>
+    <div class="logo-h">🍇 Açaí Delivery</div>
+    <div class="header-right">
+      <button class="cart-btn" onclick="showSection('cart')" id="cart-header-btn">
+        🛒 Carrinho <span class="cart-count" id="cart-count">0</span>
+      </button>
+      <button class="user-btn" id="user-label" onclick="toggleAdmin()"></button>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showSection('menu');setTab(this)">🍇 Cardápio</button>
+    <button class="tab" onclick="showSection('cart');setTab(this)">🛒 Carrinho</button>
+    <button class="tab" onclick="showSection('orders');setTab(this)">📦 Meus Pedidos</button>
+    <button class="tab" id="admin-tab" onclick="showSection('admin');setTab(this)" style="display:none">⚙️ Admin</button>
+  </div>
+
+  <!-- MENU -->
+  <div id="menu-section">
+    <p class="section-title">🥤 Açaí no Copo</p>
+    <div class="items-grid" id="grid-acai"></div>
+    <p class="section-title" style="margin-top:24px">🍓 Complementos</p>
+    <div class="items-grid" id="grid-complementos"></div>
+    <p class="section-title" style="margin-top:24px">🎁 Combos</p>
+    <div class="items-grid" id="grid-combos"></div>
+  </div>
+
+  <!-- CART -->
+  <div id="cart-section">
+    <p class="section-title">🛒 Seu Carrinho</p>
+    <div id="cart-items-list"></div>
+    <div id="cart-checkout" class="hidden">
+      <div class="cart-total">
+        <div class="cart-total-row"><span>Total</span><span id="cart-total-val">R$ 0,00</span></div>
+        <p class="payment-title">💳 Forma de pagamento:</p>
+        <div class="payment-opts">
+          <div class="pay-opt" onclick="selectPay(this,'Pix')">Pix</div>
+          <div class="pay-opt" onclick="selectPay(this,'Cartão')">Cartão</div>
+          <div class="pay-opt" onclick="selectPay(this,'Dinheiro')">💵 Dinheiro</div>
+        </div>
+        <button class="checkout-btn" onclick="openCheckoutModal()">Finalizar Pedido ✅</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORDERS -->
+  <div id="orders-section">
+    <p class="section-title">📦 Meus Pedidos</p>
+    <div id="orders-list"></div>
+  </div>
+
+  <!-- ADMIN -->
+  <div id="admin-section">
+    <div class="admin-header">
+      <p class="section-title" style="margin:0">⚙️ Painel Admin</p>
+    </div>
+    <div id="admin-orders-list"></div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMAR -->
+<div class="modal-overlay" id="checkout-modal">
+  <div class="modal">
+    <h2>Confirmar Pedido</h2>
+    <p id="modal-summary"></p>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeModal()">Cancelar</button>
+      <button class="modal-btn confirm" onclick="placeOrder()">Confirmar ✅</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== CONFIG =====
+emailjs.init("L4e1vJJ7mke0QuMq7");
+const EMAILJS_SERVICE = "service_tqyjz85";
+const EMAILJS_TEMPLATE = "template_nt8l05u";
+const ADMIN_EMAIL = "vinycius.fernandes.ms@gmail.com";
+
+// ===== STATE =====
+let currentUser = null;
+let generatedCode = "";
+let cart = [];
+let orders = JSON.parse(localStorage.getItem("acai_orders")||"[]");
+let selectedPayment = "";
+
+// ===== MENU DATA =====
+const menuData = {
+  acai:[
+    {id:"a1",name:"Açaí 300ml",desc:"Açaí puro cremoso",price:12,emoji:"🥤"},
+    {id:"a2",name:"Açaí 500ml",desc:"Açaí puro cremoso",price:18,emoji:"🥤"},
+    {id:"a3",name:"Açaí 700ml",desc:"Açaí puro cremoso",price:24,emoji:"🥤"},
+  ],
+  complementos:[
+    {id:"c1",name:"Granola",desc:"Granola crocante",price:3,emoji:"🌾"},
+    {id:"c2",name:"Banana",desc:"Fatias de banana",price:2,emoji:"🍌"},
+    {id:"c3",name:"Morango",desc:"Morangos frescos",price:4,emoji:"🍓"},
+    {id:"c4",name:"Leite em Pó",desc:"Leite em pó cremoso",price:2,emoji:"🥛"},
+    {id:"c5",name:"Mel",desc:"Mel puro",price:3,emoji:"🍯"},
+    {id:"c6",name:"Paçoca",desc:"Paçoca triturada",price:3,emoji:"🤎"},
+  ],
+  combos:[
+    {id:"k1",name:"Combo Básico",desc:"Açaí 300ml + Granola + Banana",price:16,emoji:"🎁"},
+    {id:"k2",name:"Combo Premium",desc:"Açaí 500ml + Granola + Morango + Mel",price:26,emoji:"⭐"},
+    {id:"k3",name:"Combo Família",desc:"2x Açaí 500ml + Granola + Frutas",price:44,emoji:"👨‍👩‍👧"},
+  ]
+};
+
+// ===== AUTH =====
+function sendCode(){
+  const email = document.getElementById("email-input").value.trim();
+  if(!email || !email.includes("@")){showAuthMsg("Digite um e-mail válido","error");return;}
+  const btn = document.getElementById("send-code-btn");
+  btn.disabled=true; btn.textContent="Enviando...";
+  generatedCode = Math.floor(100000+Math.random()*900000).toString();
+  const expiry = new Date(Date.now()+15*60000);
+  const timeStr = expiry.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+  emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE,{
+    to_email: email,
+    passcode: generatedCode,
+    time: timeStr
+  }).then((response)=>{
+    console.log("EmailJS sucesso:", response);
+    document.getElementById("email-shown").textContent=email;
+    document.getElementById("step-email").classList.add("hidden");
+    document.getElementById("step-otp").classList.remove("hidden");
+    currentUser = email;
+  }).catch((e)=>{
+    console.error("EmailJS erro:", e);
+    showAuthMsg("Erro: " + (e.text || e.message || "Tente novamente"),"error");
+    btn.disabled=false; btn.textContent="Enviar código";
+  });
+}
+
+function otpNav(el,idx){
+  el.value=el.value.replace(/\D/,"");
+  if(el.value && idx<5) document.querySelectorAll(".otp-digit")[idx+1].focus();
+}
+
+function getOTP(){return [...document.querySelectorAll(".otp-digit")].map(i=>i.value).join("");}
+
+function verifyCode(){
+  const entered = getOTP();
+  if(entered.length<6){showOtpMsg("Digite os 6 dígitos","error");return;}
+  if(entered===generatedCode){
+    login();
+  } else {
+    showOtpMsg("Código incorreto. Tente novamente.","error");
+  }
+}
+
+function login(){
+  document.getElementById("auth").style.display="none";
+  document.getElementById("app").style.display="block";
+  document.getElementById("user-label").textContent = currentUser===ADMIN_EMAIL?"👑 Admin":"👤 "+currentUser.split("@")[0];
+  if(currentUser===ADMIN_EMAIL) document.getElementById("admin-tab").style.display="block";
+  renderMenu();
+  renderOrders();
+}
+
+function backToEmail(){
+  document.getElementById("step-otp").classList.add("hidden");
+  document.getElementById("step-email").classList.remove("hidden");
+  document.querySelectorAll(".otp-digit").forEach(i=>i.value="");
+  showOtpMsg("","");
+}
+
+function showAuthMsg(t,type){const el=document.getElementById("auth-msg");el.className="msg "+type;el.textContent=t;}
+function showOtpMsg(t,type){const el=document.getElementById("otp-msg");el.className="msg "+type;el.textContent=t;}
+
+// ===== MENU =====
+function renderMenu(){
+  renderGrid("grid-acai", menuData.acai);
+  renderGrid("grid-complementos", menuData.complementos);
+  renderGrid("grid-combos", menuData.combos);
+}
+
+function renderGrid(id, items){
+  document.getElementById(id).innerHTML = items.map(item=>`
+    <div class="item-card">
+      <div class="item-emoji">${item.emoji}</div>
+      <div class="item-name">${item.name}</div>
+      <div class="item-desc">${item.desc}</div>
+      <div class="item-bottom">
+        <span class="item-price">R$ ${item.price.toFixed(2).replace(".",",")}</span>
+        <button class="add-btn" onclick="addToCart('${item.id}')">+ Adicionar</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+// ===== CART =====
+function allItems(){return [...menuData.acai,...menuData.complementos,...menuData.combos];}
+
+function addToCart(id){
+  const item = allItems().find(i=>i.id===id);
+  const existing = cart.find(c=>c.id===id);
+  if(existing) existing.qty++;
+  else cart.push({...item,qty:1});
+  updateCartCount();
+  showSection("cart"); setTab(document.querySelectorAll(".tab")[1]);
+  renderCart();
+}
+
+function updateCartCount(){
+  const total = cart.reduce((s,i)=>s+i.qty,0);
+  document.getElementById("cart-count").textContent=total;
+}
+
+function renderCart(){
+  const list = document.getElementById("cart-items-list");
+  const checkout = document.getElementById("cart-checkout");
+  if(!cart.length){
+    list.innerHTML=`<div class="empty-cart">🛒<br>Seu carrinho está vazio</div>`;
+    checkout.classList.add("hidden"); return;
+  }
+  list.innerHTML = cart.map(item=>`
+    <div class="cart-item">
+      <div class="cart-item-info">
+        <div class="cart-item-name">${item.emoji} ${item.name}</div>
+        <div class="cart-item-price">R$ ${(item.price*item.qty).toFixed(2).replace(".",",")}</div>
+      </div>
+      <div class="qty-ctrl">
+        <button class="qty-btn" onclick="changeQty('${item.id}',-1)">−</button>
+        <span class="qty-num">${item.qty}</span>
+        <button class="qty-btn" onclick="changeQty('${item.id}',1)">+</button>
+      </div>
+    </div>
+  `).join("");
+  const total = cart.reduce((s,i)=>s+(i.price*i.qty),0);
+  document.getElementById("cart-total-val").textContent="R$ "+total.toFixed(2).replace(".",",");
+  checkout.classList.remove("hidden");
+}
+
+function changeQty(id,delta){
+  const idx = cart.findIndex(c=>c.id===id);
+  cart[idx].qty+=delta;
+  if(cart[idx].qty<=0) cart.splice(idx,1);
+  updateCartCount(); renderCart();
+}
+
+function selectPay(el,method){
+  document.querySelectorAll(".pay-opt").forEach(o=>o.classList.remove("selected"));
+  el.classList.add("selected");
+  selectedPayment=method;
+}
+
+function openCheckoutModal(){
+  if(!selectedPayment){alert("Selecione a forma de pagamento!");return;}
+  const total = cart.reduce((s,i)=>s+(i.price*i.qty),0);
+  const items = cart.map(i=>`${i.name}`).join(", ");
+  document.getElementById("modal-summary").textContent=
+    `${items} — Total: R$ ${total.toFixed(2).replace(".",",")} — Pagamento: ${selectedPayment}`;
+  document.getElementById("checkout-modal").classList.add("show");
+}
+function closeModal(){document.getElementById("checkout-modal").classList.remove("show");}
+
+function placeOrder(){
+  const total = cart.reduce((s,i)=>s+(i.price*i.qty),0);
+  const order = {
+    id:"#"+Date.now().toString().slice(-5),
+    user: currentUser,
+    items: cart.map(i=>({name:i.name,qty:i.qty,price:i.price})),
+    total,
+    payment: selectedPayment,
+    status:"novo",
+    date: new Date().toLocaleString("pt-BR")
+  };
+  orders.unshift(order);
+  localStorage.setItem("acai_orders", JSON.stringify(orders));
+  cart=[]; selectedPayment="";
+  updateCartCount(); closeModal();
+  renderOrders(); renderAdminOrders();
+  showSection("orders"); setTab(document.querySelectorAll(".tab")[2]);
+  renderCart();
+}
+
+// ===== ORDERS =====
+function renderOrders(){
+  const myOrders = orders.filter(o=>o.user===currentUser);
+  const list = document.getElementById("orders-list");
+  if(!myOrders.length){list.innerHTML=`<div class="empty-cart">📦<br>Você ainda não fez pedidos</div>`;return;}
+  const statusLabel={novo:"🟡 Novo",preparo:"🔵 Em preparo",entrega:"🟣 Saiu p/ entrega",entregue:"🟢 Entregue"};
+  const statusClass={novo:"status-novo",preparo:"status-preparo",entrega:"status-entrega",entregue:"status-entregue"};
+  list.innerHTML=myOrders.map(o=>`
+    <div class="order-card">
+      <div class="order-header">
+        <span class="order-id">Pedido ${o.id}</span>
+        <span class="order-status ${statusClass[o.status]}">${statusLabel[o.status]}</span>
+      </div>
+      <div class="order-items">${o.items.map(i=>`${i.qty}x ${i.name}`).join(" · ")}</div>
+      <div class="order-footer">
+        <span>${o.date}</span>
+        <span>R$ ${o.total.toFixed(2).replace(".",",")} · ${o.payment}</span>
+      </div>
+    </div>
+  `).join("");
+}
+
+// ===== ADMIN =====
+function toggleAdmin(){
+  if(currentUser===ADMIN_EMAIL){
+    showSection("admin"); setTab(document.getElementById("admin-tab"));
+    renderAdminOrders();
+  }
+}
+
+function renderAdminOrders(){
+  const list = document.getElementById("admin-orders-list");
+  if(!orders.length){list.innerHTML=`<div class="empty-cart">📭 Nenhum pedido ainda</div>`;return;}
+  const statusOpts=["novo","preparo","entrega","entregue"];
+  const statusLabel={novo:"Novo",preparo:"Em preparo",entrega:"Saiu p/ entrega",entregue:"Entregue"};
+  list.innerHTML=orders.map((o,idx)=>`
+    <div class="admin-order-card">
+      <div class="admin-order-top">
+        <div class="admin-order-info">
+          <div class="admin-order-id">Pedido ${o.id}</div>
+          <div class="admin-order-client">👤 ${o.user} · ${o.date}</div>
+        </div>
+      </div>
+      <div class="admin-order-items">${o.items.map(i=>`${i.qty}x ${i.name}`).join(" · ")}</div>
+      <div class="admin-order-footer">
+        <div>
+          <span class="admin-total">R$ ${o.total.toFixed(2).replace(".",",")}</span>
+          <span class="admin-pay"> · ${o.payment}</span>
+        </div>
+        <select class="status-select" onchange="changeStatus(${idx},this.value)">
+          ${statusOpts.map(s=>`<option value="${s}" ${o.status===s?"selected":""}>${statusLabel[s]}</option>`).join("")}
+        </select>
+      </div>
+    </div>
+  `).join("");
+}
+
+function changeStatus(idx,val){
+  orders[idx].status=val;
+  localStorage.setItem("acai_orders",JSON.stringify(orders));
+  renderOrders();
+}
+
+// ===== NAV =====
+function showSection(s){
+  ["menu","cart","orders","admin"].forEach(id=>{
+    document.getElementById(id+"-section").style.display=s===id?"block":"none";
+  });
+  if(s==="cart") renderCart();
+  if(s==="orders") renderOrders();
+  if(s==="admin") renderAdminOrders();
+}
+
+function setTab(el){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  el.classList.add("active");
+}
+</script>
+</body>
+</html>
+</project_guidelines>
