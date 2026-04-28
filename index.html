@@ -44,7 +44,30 @@
   .cart-btn{background:#fff2;border:none;color:#fff;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:.9rem;font-weight:600;display:flex;align-items:center;gap:6px;transition:.2s;}
   .cart-btn:hover{background:#fff3;}
   .cart-count{background:#fff;color:var(--purple);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;}
-  .user-btn{background:#fff2;border:none;color:#fff;padding:8px 14px;border-radius:20px;cursor:pointer;font-size:.85rem;}
+  .user-btn{background:#fff2;border:none;color:#fff;padding:8px 14px;border-radius:20px;cursor:pointer;font-size:.85rem;display:flex;align-items:center;gap:8px;transition:.2s;}
+  .user-btn:hover{background:#fff3;}
+  .user-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover;border:2px solid #fff5;}
+  .user-avatar.default{background:#fff3;display:flex;align-items:center;justify-content:center;font-size:.9rem;}
+
+  /* ===== CONFIGURAÇÕES ===== */
+  #settings-section{display:none;padding:20px 24px;}
+  .settings-card{background:#fff;border-radius:16px;padding:24px;max-width:500px;margin:0 auto;box-shadow:var(--shadow);}
+  .settings-title{font-size:1.2rem;font-weight:800;color:var(--purple);margin-bottom:20px;display:flex;align-items:center;gap:10px;}
+  .settings-group{margin-bottom:20px;}
+  .settings-label{display:block;font-weight:600;color:#374151;margin-bottom:8px;}
+  .settings-input{width:100%;padding:12px 16px;border:2px solid #e5e7eb;border-radius:10px;font-size:1rem;outline:none;transition:.2s;}
+  .settings-input:focus{border-color:var(--purple);}
+  .avatar-section{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:20px;}
+  .avatar-preview{width:100px;height:100px;border-radius:50%;object-fit:cover;border:4px solid var(--purple);background:#f3f4f6;}
+  .avatar-actions{display:flex;gap:8px;}
+  .avatar-btn{padding:8px 16px;border-radius:8px;border:2px solid var(--purple);background:#fff;color:var(--purple);cursor:pointer;font-weight:600;transition:.2s;}
+  .avatar-btn:hover{background:var(--purple);color:#fff;}
+  .avatar-btn.danger{border-color:#ef4444;color:#ef4444;}
+  .avatar-btn.danger:hover{background:#ef4444;color:#fff;}
+  .save-btn{width:100%;padding:14px;background:var(--grad);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;transition:.2s;}
+  .save-btn:hover{opacity:.9;}
+  .logout-btn{width:100%;padding:14px;background:#ef4444;color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;transition:.2s;margin-top:12px;}
+  .logout-btn:hover{background:#dc2626;}
 
   /* ===== TABS ===== */
   .tabs{display:flex;gap:8px;padding:20px 24px 0;overflow-x:auto;}
@@ -167,7 +190,10 @@
       <button class="cart-btn" onclick="showSection('cart')" id="cart-header-btn">
         🛒 Carrinho <span class="cart-count" id="cart-count">0</span>
       </button>
-      <button class="user-btn" id="user-label" onclick="toggleAdmin()"></button>
+      <button class="user-btn" id="user-label" onclick="openSettings()">
+        <span id="user-avatar-display" class="user-avatar default">👤</span>
+        <span id="user-name-display"></span>
+      </button>
     </div>
   </header>
 
@@ -176,6 +202,7 @@
     <button class="tab" onclick="showSection('cart');setTab(this)">🛒 Carrinho</button>
     <button class="tab" onclick="showSection('orders');setTab(this)">📦 Meus Pedidos</button>
     <button class="tab" id="admin-tab" onclick="showSection('admin');setTab(this)" style="display:none">⚙️ Admin</button>
+    <button class="tab" onclick="showSection('settings');setTab(this)">⚙️ Perfil</button>
   </div>
 
   <!-- MENU -->
@@ -219,6 +246,36 @@
     </div>
     <div id="admin-orders-list"></div>
   </div>
+
+  <!-- CONFIGURAÇÕES/PERFIL -->
+  <div id="settings-section">
+    <div class="settings-card">
+      <h2 class="settings-title">👤 Meu Perfil</h2>
+
+      <div class="avatar-section">
+        <img id="avatar-preview" class="avatar-preview" src="" alt="Foto de perfil" style="display:none;">
+        <div id="avatar-placeholder" class="avatar-preview" style="display:flex;align-items:center;justify-content:center;font-size:2.5rem;background:#f3f4f6;border-radius:50%;">👤</div>
+        <div class="avatar-actions">
+          <button class="avatar-btn" onclick="document.getElementById('avatar-input').click()">📷 Escolher foto</button>
+          <button class="avatar-btn danger" onclick="removeAvatar()">🗑️ Remover</button>
+        </div>
+        <input type="file" id="avatar-input" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
+      </div>
+
+      <div class="settings-group">
+        <label class="settings-label">📧 E-mail</label>
+        <input type="email" class="settings-input" id="settings-email" readonly>
+      </div>
+
+      <div class="settings-group">
+        <label class="settings-label">📝 Nome (opcional)</label>
+        <input type="text" class="settings-input" id="settings-name" placeholder="Seu nome">
+      </div>
+
+      <button class="save-btn" onclick="saveSettings()">💾 Salvar alterações</button>
+      <button class="logout-btn" onclick="logout()">🚪 Sair da conta</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL CONFIRMAR -->
@@ -229,6 +286,18 @@
     <div class="modal-btns">
       <button class="modal-btn cancel" onclick="closeModal()">Cancelar</button>
       <button class="modal-btn confirm" onclick="placeOrder()">Confirmar ✅</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL LOGOUT -->
+<div class="modal-overlay" id="logout-modal">
+  <div class="modal">
+    <h2>Sair da conta?</h2>
+    <p>Tem certeza que deseja sair? Você precisará fazer login novamente para acessar seus pedidos.</p>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeLogoutModal()">Cancelar</button>
+      <button class="modal-btn confirm" onclick="confirmLogout()">Sair ✅</button>
     </div>
   </div>
 </div>
