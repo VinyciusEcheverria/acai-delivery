@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Açaí Delivery</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/emailjs-com/3.2.0/email.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
   :root{
@@ -240,8 +240,10 @@ const EMAILJS_TEMPLATE = "template_nt8l05u";
 const ADMIN_EMAIL = "vinycius.fernandes.ms@gmail.com";
 
 // Inicializa EmailJS quando a página carregar
-window.addEventListener('DOMContentLoaded', function() {
-  emailjs.init("L4e1vJJ7mke0QuMq7");
+window.addEventListener('load', function() {
+  if (typeof emailjs !== 'undefined') {
+    emailjs.init("L4e1vJJ7mke0QuMq7");
+  }
 });
 
 // ===== STATE =====
