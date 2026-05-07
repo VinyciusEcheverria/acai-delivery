@@ -359,7 +359,23 @@ header{background:#fff;padding:0 20px;height:64px;display:flex;align-items:cente
   </div>
 </div>
 
-<!-- PRODUCT MODAL -->
+<!-- ITEM DETAIL MODAL -->
+<div class="modal-overlay" id="item-modal">
+  <div class="modal-box">
+    <div id="item-detail-img-wrap" class="item-detail-img"></div>
+    <div class="item-detail-body">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+        <button class="modal-close" onclick="closeItemModal()" style="position:static;">✕</button>
+      </div>
+      <div class="item-detail-name" id="item-detail-name"></div>
+      <div class="item-detail-desc" id="item-detail-desc"></div>
+      <div class="item-detail-footer">
+        <div class="item-detail-price" id="item-detail-price"></div>
+        <button class="item-detail-add" id="item-detail-add-btn">+ Adicionar</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="product-modal">
   <div class="modal-box">
     <div class="modal-hdr">
@@ -550,20 +566,31 @@ window.setCat=cat=>{activeCat=cat;navTo("home");};
 function itemCard(item){
   const img=item.imageUrl
     ?`<div class="item-img-wrap"><img src="${item.imageUrl}" alt="${item.name}" loading="lazy"/></div>`
-    :`<div class="item-emoji-bg">${item.emoji||"🎂"}</div>`;
-  return `<div class="item-card">
+    :`<div class="item-emoji-bg">🎂</div>`;
+  return `<div class="item-card" onclick="openItemModal('${item.id}')">
     ${img}
     <div class="item-body">
-      <div class="item-cat-tag">${(CAT_LABELS[item.category]||item.category).replace(/^\S+\s/,"")}</div>
       <div class="item-name">${item.name}</div>
-      <div class="item-desc">${item.desc||""}</div>
       <div class="item-footer">
         <span class="item-price">R$ ${Number(item.price).toFixed(2).replace(".",",")}</span>
-        <button class="add-btn" onclick="addToCart('${item.id}')">+ Adicionar</button>
+        <button class="add-btn" onclick="event.stopPropagation();addToCart('${item.id}')">+ Adicionar</button>
       </div>
     </div>
   </div>`;
 }
+
+window.openItemModal=id=>{
+  const item=menuItems.find(i=>i.id===id);
+  if(!item) return;
+  const imgWrap=document.getElementById("item-detail-img-wrap");
+  imgWrap.innerHTML=item.imageUrl?`<img src="${item.imageUrl}" alt="${item.name}"/>`:`🎂`;
+  document.getElementById("item-detail-name").textContent=item.name;
+  document.getElementById("item-detail-desc").textContent=item.desc||"Sem descrição disponível.";
+  document.getElementById("item-detail-price").textContent=`R$ ${Number(item.price).toFixed(2).replace(".",",")}`;
+  document.getElementById("item-detail-add-btn").onclick=()=>{addToCart(id);closeItemModal();};
+  document.getElementById("item-modal").classList.add("show");
+};
+window.closeItemModal=()=>document.getElementById("item-modal").classList.remove("show");
 
 window.addToCart=id=>{
   if(!STORE_OPEN){toast("A loja está fechada no momento","error");return;}
