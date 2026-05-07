@@ -366,12 +366,14 @@ header{background:#fff;padding:0 20px;height:64px;display:flex;align-items:cente
       <div class="modal-title" id="product-modal-title">➕ Novo Produto</div>
       <button class="modal-close" onclick="closeProductModal()">✕</button>
     </div>
-    <div class="img-upload-area" onclick="document.getElementById('prod-img-input').click()">
-      <img id="prod-img-preview" src="" style="display:none;"/>
-      <div class="img-upload-label" id="img-upload-label"><span>📷</span>Clique para adicionar foto</div>
-      <div class="img-overlay">Trocar foto</div>
+    <div id="prod-img-preview-wrap" style="width:100%;height:150px;border-radius:12px;overflow:hidden;background:var(--cream2);display:none;margin-bottom:10px;">
+      <img id="prod-img-preview" src="" style="width:100%;height:100%;object-fit:cover;"/>
     </div>
-    <input type="file" id="prod-img-input" accept="image/*" style="display:none;" onchange="handleProductImg(event)"/>
+    <div class="fgroup full" style="margin-bottom:14px;">
+      <label>URL DA FOTO <span style="color:var(--sub);font-weight:400;">(cole um link de imagem — ex: Imgur)</span></label>
+      <input type="url" id="prod-img-url" placeholder="https://i.imgur.com/exemplo.jpg" oninput="previewImgUrl(this.value)"/>
+    </div>
+    <p style="font-size:.78rem;color:var(--sub);margin-bottom:14px;">💡 Para hospedar sua foto gratuitamente: acesse <strong>imgur.com</strong>, faça upload e copie o link direto da imagem (termina em .jpg ou .png)</p>
     <div class="form-grid">
       <div class="fgroup full"><label>NOME DO PRODUTO *</label><input type="text" id="prod-name" placeholder="Ex: Bolo de Chocolate"/></div>
       <div class="fgroup full"><label>DESCRIÇÃO</label><input type="text" id="prod-desc" placeholder="Ex: Bolo cremoso com ganache"/></div>
@@ -860,11 +862,18 @@ window.cancelOrder=async id=>{
   catch(e){toast("Erro","error");}
 };
 
+window.previewImgUrl=url=>{
+  const wrap=document.getElementById("prod-img-preview-wrap");
+  const img=document.getElementById("prod-img-preview");
+  if(url){wrap.style.display="block";img.src=url;}
+  else{wrap.style.display="none";img.src="";}
+};
+
 window.openProductModal=id=>{
   editingProductId=id||null;productImgFile=null;
-  const preview=document.getElementById("prod-img-preview");
-  const label=document.getElementById("img-upload-label");
   document.getElementById("product-modal-title").textContent=id?"✏️ Editar Produto":"➕ Novo Produto";
+  const wrap=document.getElementById("prod-img-preview-wrap");
+  const img=document.getElementById("prod-img-preview");
   if(id){
     const item=menuItems.find(i=>i.id===id);if(!item)return;
     document.getElementById("prod-name").value=item.name||"";
@@ -872,29 +881,17 @@ window.openProductModal=id=>{
     document.getElementById("prod-price").value=item.price||"";
     document.getElementById("prod-category").value=item.category||"bolos";
     document.getElementById("prod-emoji").value=item.emoji||"";
-    if(item.imageUrl){preview.src=item.imageUrl;preview.style.display="block";label.style.display="none";}
-    else{preview.style.display="none";label.style.display="flex";}
+    document.getElementById("prod-img-url").value=item.imageUrl||"";
+    if(item.imageUrl){wrap.style.display="block";img.src=item.imageUrl;}
+    else{wrap.style.display="none";}
   } else {
-    ["prod-name","prod-desc","prod-price","prod-emoji"].forEach(id=>document.getElementById(id).value="");
+    ["prod-name","prod-desc","prod-price","prod-emoji","prod-img-url"].forEach(i=>document.getElementById(i).value="");
     document.getElementById("prod-category").value="bolos";
-    preview.style.display="none";label.style.display="flex";
+    wrap.style.display="none";
   }
   document.getElementById("product-modal").classList.add("show");
 };
 window.closeProductModal=()=>{document.getElementById("product-modal").classList.remove("show");editingProductId=null;productImgFile=null;};
-
-window.handleProductImg=e=>{
-  const file=e.target.files[0];if(!file)return;
-  if(file.size>5*1024*1024){toast("Imagem muito grande (máx 5MB)","error");return;}
-  productImgFile=file;
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    const preview=document.getElementById("prod-img-preview");
-    preview.src=ev.target.result;preview.style.display="block";
-    document.getElementById("img-upload-label").style.display="none";
-  };
-  reader.readAsDataURL(file);
-};
 
 window.saveProduct=async()=>{
   const name=document.getElementById("prod-name").value.trim();
@@ -902,22 +899,12 @@ window.saveProduct=async()=>{
   const price=parseFloat(document.getElementById("prod-price").value);
   const category=document.getElementById("prod-category").value;
   const emoji=document.getElementById("prod-emoji").value.trim()||"🎂";
+  const imageUrl=document.getElementById("prod-img-url").value.trim();
   if(!name||isNaN(price)||price<=0||!category){toast("Preencha nome, preço e categoria","error");return;}
   const btn=document.getElementById("save-product-btn");
   btn.disabled=true;btn.innerHTML='<span class="spinner-g"></span> Salvando...';
   try{
-    let imageUrl=editingProductId?menuItems.find(i=>i.id===editingProductId)?.imageUrl||"":"";
-    if(productImgFile){
-      try{
-        const imgRef=ref(storage,`products/${Date.now()}_${productImgFile.name}`);
-        await uploadBytes(imgRef,productImgFile);
-        imageUrl=await getDownloadURL(imgRef);
-      }catch(uploadErr){
-        console.warn("Upload de imagem falhou, salvando sem imagem:",uploadErr);
-        toast("Foto não pôde ser salva, mas o produto será salvo sem imagem.","info",4000);
-      }
-    }
-    const data={name,desc:desc||"",price:Number(price),category,emoji,imageUrl:imageUrl||"",updatedAt:serverTimestamp()};
+    const data={name,desc:desc||"",price:Number(price),category,emoji,imageUrl,updatedAt:serverTimestamp()};
     if(editingProductId){
       await updateDoc(doc(db,"products",editingProductId),data);
       toast("Produto atualizado! ✅","success");
@@ -927,8 +914,8 @@ window.saveProduct=async()=>{
     }
     closeProductModal();
   }catch(e){
-    console.error("Erro ao salvar produto:",e);
-    toast(`Erro: ${e.message||"Tente novamente"})`,"error",5000);
+    console.error(e);
+    toast(`Erro ao salvar: ${e.message}`,"error",5000);
   }finally{
     btn.disabled=false;btn.textContent="💾 Salvar produto";
   }
