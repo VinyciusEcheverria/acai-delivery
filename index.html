@@ -891,11 +891,11 @@ window.saveProduct=async()=>{
   const category=document.getElementById("prod-category").value;
   const emoji=document.getElementById("prod-emoji").value.trim()||"🎂";
   const imageUrl=document.getElementById("prod-img-url").value.trim();
-  if(!name||isNaN(price)||price<=0||!category){toast("Preencha nome, preço e categoria","error");return;}
+  if(!name||isNaN(price)||price<=0){toast("Preencha nome e preço","error");return;}
   const btn=document.getElementById("save-product-btn");
   btn.disabled=true;btn.innerHTML='<span class="spinner-g"></span> Salvando...';
   try{
-    const data={name,desc:desc||"",price:Number(price),category,emoji,imageUrl,updatedAt:serverTimestamp()};
+    const data={name,desc:desc||"",price:Number(price),category:"outros",emoji:"🎂",imageUrl,updatedAt:serverTimestamp()};
     if(editingProductId){
       await updateDoc(doc(db,"products",editingProductId),data);
       toast("Produto atualizado! ✅","success");
