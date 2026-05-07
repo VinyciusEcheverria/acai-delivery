@@ -362,16 +362,18 @@ header{background:#fff;padding:0 20px;height:64px;display:flex;align-items:cente
 <!-- ITEM DETAIL MODAL -->
 <div class="modal-overlay" id="item-modal">
   <div class="modal-box">
-    <div id="item-detail-img-wrap" class="item-detail-img"></div>
+    <div class="item-detail-img-wrap" id="item-detail-img-wrap">
+      <button class="item-detail-close" onclick="closeItemModal()">✕</button>
+    </div>
     <div class="item-detail-body">
-      <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
-        <button class="modal-close" onclick="closeItemModal()" style="position:static;">✕</button>
-      </div>
       <div class="item-detail-name" id="item-detail-name"></div>
       <div class="item-detail-desc" id="item-detail-desc"></div>
       <div class="item-detail-footer">
-        <div class="item-detail-price" id="item-detail-price"></div>
-        <button class="item-detail-add" id="item-detail-add-btn">+ Adicionar</button>
+        <div class="item-detail-price-wrap">
+          <div class="item-detail-price-label">Valor</div>
+          <div class="item-detail-price" id="item-detail-price"></div>
+        </div>
+        <button class="item-detail-add" id="item-detail-add-btn">🛒 Adicionar ao carrinho</button>
       </div>
     </div>
   </div>
@@ -583,9 +585,10 @@ window.openItemModal=id=>{
   const item=menuItems.find(i=>i.id===id);
   if(!item) return;
   const imgWrap=document.getElementById("item-detail-img-wrap");
-  imgWrap.innerHTML=item.imageUrl?`<img src="${item.imageUrl}" alt="${item.name}"/>`:`🎂`;
+  imgWrap.innerHTML=`<button class="item-detail-close" onclick="closeItemModal()">✕</button>`
+    +(item.imageUrl?`<img src="${item.imageUrl}" alt="${item.name}"/>`:`<span>🎂</span>`);
   document.getElementById("item-detail-name").textContent=item.name;
-  document.getElementById("item-detail-desc").textContent=item.desc||"Sem descrição disponível.";
+  document.getElementById("item-detail-desc").textContent=item.desc||"Um produto delicioso feito com muito carinho pela Echeverria's Gourmet.";
   document.getElementById("item-detail-price").textContent=`R$ ${Number(item.price).toFixed(2).replace(".",",")}`;
   document.getElementById("item-detail-add-btn").onclick=()=>{addToCart(id);closeItemModal();};
   document.getElementById("item-modal").classList.add("show");
