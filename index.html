@@ -528,9 +528,6 @@ window.navTo=page=>{
 };
 
 function renderHome(){
-  const filtered=activeCat==="todos"?menuItems:menuItems.filter(i=>i.category===activeCat);
-  const cats=ALL_CATS.filter(c=>menuItems.some(i=>i.category===c));
-
   return `
     <div class="hero">
       <div class="hero-greeting">Olá, ${(userProfile?.name||"").split(" ")[0]||"cliente"}! 👋</div>
@@ -541,18 +538,10 @@ function renderHome(){
         <div class="hero-chip">${STORE_OPEN?"🟢 Aberto":"🔴 Fechado"}</div>
       </div>
     </div>
-    <div class="cat-pills">
-      <div class="cat-pill ${activeCat==="todos"?"active":""}" onclick="setCat('todos')">Todos</div>
-      ${cats.map(c=>`<div class="cat-pill ${activeCat===c?"active":""}" onclick="setCat('${c}')">${CAT_LABELS[c]}</div>`).join("")}
-    </div>
-    ${filtered.length===0
+    <div class="sec-title">🎂 Nossos Produtos</div>
+    ${menuItems.length===0
       ?`<div class="empty-state"><div class="empty-icon">🎂</div><p>Cardápio sendo preparado com carinho...</p></div>`
-      :cats.filter(c=>activeCat==="todos"?true:c===activeCat).map(cat=>{
-          const items=filtered.filter(i=>i.category===cat);
-          if(!items.length) return "";
-          return `<div class="sec-title">${CAT_LABELS[cat]}</div>
-            <div class="items-grid">${items.map(itemCard).join("")}</div>`;
-        }).join("")
+      :`<div class="items-grid">${menuItems.map(itemCard).join("")}</div>`
     }`;
 }
 
@@ -824,23 +813,19 @@ function renderAdminPedidos(){
 
 function renderAdminCardapio(){
   return `<button class="add-prod-btn" onclick="openProductModal()">➕ Adicionar novo produto</button>
-    ${ALL_CATS.map(cat=>{
-      const items=menuItems.filter(i=>i.category===cat);
-      return `<div class="sec-title">${CAT_LABELS[cat]}</div>
-        <div class="product-grid">
-          ${items.length?items.map(item=>{
-            const img=item.imageUrl?`<img class="prod-img" src="${item.imageUrl}"/>`:`<div class="prod-emoji-bg">${item.emoji||"🎂"}</div>`;
-            return `<div class="prod-card">${img}<div class="prod-body">
-              <div class="prod-name">${item.name}</div>
-              <div class="prod-price">R$ ${Number(item.price).toFixed(2).replace(".",",")}</div>
-              <div class="prod-actions">
-                <button class="edit-btn" onclick="openProductModal('${item.id}')">✏️ Editar</button>
-                <button class="del-btn" onclick="deleteProduct('${item.id}')">🗑️</button>
-              </div>
-            </div></div>`;
-          }).join(""):`<p style="color:var(--sub);font-size:.85rem;padding:4px 0;">Nenhum produto</p>`}
-        </div>`;
-    }).join("")}`;
+    <div class="product-grid">
+      ${menuItems.length?menuItems.map(item=>{
+        const img=item.imageUrl?`<img class="prod-img" src="${item.imageUrl}"/>`:`<div class="prod-emoji-bg">🎂</div>`;
+        return `<div class="prod-card">${img}<div class="prod-body">
+          <div class="prod-name">${item.name}</div>
+          <div class="prod-price">R$ ${Number(item.price).toFixed(2).replace(".",",")}</div>
+          <div class="prod-actions">
+            <button class="edit-btn" onclick="openProductModal('${item.id}')">✏️ Editar</button>
+            <button class="del-btn" onclick="deleteProduct('${item.id}')">🗑️</button>
+          </div>
+        </div></div>`;
+      }).join(""):`<p style="color:var(--sub);font-size:.9rem;padding:8px 0;">Nenhum produto cadastrado ainda</p>`}
+    </div>`;
 }
 
 window.setAdminFilter=f=>{adminFilter=f;navTo("admin");};
